@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CIPHER VAULT</title>
+    <style>
+        :root {
+            --bg: #070a10;
+            --bg2: #0b111c;
+            --panel: #0f1826;
+            --line: #1c2b40;
+            --fg: #cdd9e6;
+            --dim: #63788f;
+            --accent: #00ff9c;
+            --accent2: #29b6ff;
+            --danger: #ff4d6d;
+            --mono: "SFMono-Regular", "Cascadia Code", Consolas, "Courier New", monospace;
+            /* config */
+            --vec-x: #72bcb8ce;
+            --vec-y: #9aabe371;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(900px 500px at 50% -20%, #0d2b3f88, transparent),
+                radial-gradient(700px 700px at 100% 120%, #07281e88, transparent),
+                var(--bg);
+            color: var(--fg);
+            font-family: var(--mono);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* scanline veil */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 999;
+            background: repeating-linear-gradient(to bottom, transparent 0 2px, #00000026 2px 4px);
+            mix-blend-mode: overlay;
+        }
+
+        a {
+            color: var(--accent2);
+            text-decoration: none;
+        }
+
+        .wrap {
+            width: 100%;
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 0 1.4rem;
+        }
+
+        /* ---- Top bar ---- */
+        header {
+            border-bottom: 1px solid var(--line);
+            background: #070a10cc;
+            backdrop-filter: blur(6px);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .7rem 0;
+            font-size: .76rem;
+            letter-spacing: .08em;
+        }
+
+        .brand {
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: .18em;
+        }
+
+        .brand span {
+            color: var(--dim);
+        }
+
+        .lockstate {
+            color: var(--danger);
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--danger);
+            box-shadow: 0 0 8px var(--danger);
+            animation: pulse 1.6s infinite;
+        }
+
+        @keyframes pulse {
+            50% {
+                opacity: .3;
+            }
+        }
+
+        /* ---- Main ---- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3.5rem 0;
+        }
+
+        .stage {
+            text-align: center;
+        }
+
+        /* padlock */
+        .lock {
+            width: 84px;
+            height: 84px;
+            margin: 0 auto 1.6rem;
+            color: var(--accent);
+            filter: drop-shadow(0 0 16px #00ff9c44);
+            animation: float 5s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-7px);
+            }
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: .68rem;
+            letter-spacing: .3em;
+            color: var(--accent);
+            border: 1px solid #12402c;
+            background: #06140d;
+            padding: .25rem .7rem;
+            border-radius: 999px;
+            margin-bottom: 1.3rem;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: clamp(2.4rem, 9vw, 3.8rem);
+            margin: 0 0 .8rem;
+            line-height: 1;
+            letter-spacing: .02em;
+            color: #eaf3fb;
+            text-shadow: 0 0 28px #00ff9c33;
+        }
+
+        h1 .g {
+            color: var(--accent);
+        }
+
+        .lede {
+            color: var(--dim);
+            max-width: 42ch;
+            margin: 0 auto 2.4rem;
+            font-size: 1rem;
+        }
+
+        .lede .cur::after {
+            content: "_";
+            color: var(--accent);
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* artifact frame */
+        .relic {
+            margin: 0 auto 2.4rem;
+            width: 210px;
+            max-width: 70%;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px;
+            background: linear-gradient(180deg, var(--panel), var(--bg2));
+            position: relative;
+        }
+
+        .relic::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            padding: 1px;
+            background: linear-gradient(140deg, #00ff9c55, transparent 40%, #29b6ff55);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .relic img {
+            width: 100%;
+            display: block;
+            border-radius: 7px;
+            background: #000;
+        }
+
+        /* flag console */
+        .console {
+            width: 100%;
+            max-width: 460px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, #0b1510, #08120d);
+            border: 1px solid #12402c;
+            border-radius: 12px;
+            padding: 1.4rem;
+            text-align: left;
+        }
+
+        .console .prompt {
+            font-size: .72rem;
+            letter-spacing: .14em;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: .7rem;
+        }
+
+        .inrow {
+            display: flex;
+            gap: .55rem;
+        }
+
+        input[type=text] {
+            flex: 1;
+            min-width: 0;
+            background: #000;
+            color: var(--accent);
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            padding: .8rem 1rem;
+            font-family: var(--mono);
+            font-size: 1rem;
+            letter-spacing: .04em;
+        }
+
+        input[type=text]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px #00ff9c33;
+        }
+
+        button {
+            background: var(--accent);
+            color: #041b12;
+            border: 0;
+            border-radius: 7px;
+            padding: .8rem 1.4rem;
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: .92rem;
+            cursor: pointer;
+            letter-spacing: .06em;
+            transition: filter .15s, transform .1s;
+        }
+
+        button:hover {
+            filter: brightness(1.12);
+        }
+
+        button:active {
+            transform: scale(.97);
+        }
+
+        .verdict {
+            margin-top: 1rem;
+            font-size: .88rem;
+            min-height: 1.3em;
+        }
+
+        .verdict.ok {
+            color: var(--accent);
+        }
+
+        .verdict.no {
+            color: var(--danger);
+        }
+
+        footer {
+            border-top: 1px solid var(--line);
+            padding: 1.5rem 0;
+            color: var(--dim);
+            font-size: .74rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ================================================================= -->
+    <!--  edge cache manifest · v2                                         -->
+    <!--  node integrity · part 2 · e00c40dbd2c5e71c9437                   -->
+    <!--  secure cookie · cf_sess=bd96da32e9beecd05bc08b717ba279dc4dec42e676c068c1182c52ea34c1a8c145f3045d77b88099213c7445a790c58d2b1d9afb0ee18cba04186543024f171a -->
+    <!-- ================================================================= -->
+    <header>
+        <div class="wrap bar">
+            <div class="brand">CIPHER<span>_</span>VAULT</div>
+            <div class="lockstate"><span class="status-dot"></span>SEALED</div>
+        </div>
+    </header>
+
+    <main>
+        <div class="wrap stage">
+
+            <!-- padlock glyph -->
+            <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="4" y="10.5" width="16" height="10" rx="2.2"></rect>
+                <path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"></path>
+                <circle cx="12" cy="15" r="1.4"></circle>
+                <path d="M12 16.4v2"></path>
+            </svg>
+
+            <span class="tag">Encrypted</span>
+            <h1>CIPHER <span class="g">VAULT</span></h1>
+            <p class="lede"><span class="cur">Something is sealed inside. Get in, and take what's yours.</span></p>
+
+            <!-- artifact -->
+            <div class="relic">
+                <img src="roll-safe-meme-1_.jpg" alt="">
+            </div>
+
+            <!-- flag console -->
+            <div class="console">
+                <div class="prompt">&gt; enter recovered flag</div>
+                <div class="inrow">
+                    <input type="text" id="flag" placeholder="FLAG{...}" autocomplete="off" spellcheck="false">
+                    <button id="check">UNLOCK</button>
+                </div>
+                <div class="verdict" id="verdict"></div>
+            </div>
+            <input type="hidden" id="key" value="a309a2b3a83d18041">
+        </div>
+    </main>
+
+    <footer>
+        CIPHER_VAULT &middot; <span id="year"></span>
+        <span style="color:var(--bg);user-select:all;"></span>
+    </footer>
+
+    <script>
+        // SHA-256 of the expected flag — the plaintext answer is NOT in this file.
+        const EXPECTED_HASH = "dcde41d7d9c3f76046891dce390b49969d4bf4cad0d384b0d467cc096c2e9fc7";
+
+        const input = document.getElementById("flag");
+        const verdict = document.getElementById("verdict");
+
+        async function sha256(text) {
+            const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+            return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+        }
+
+        async function check() {
+            const value = input.value.trim();
+            if (!value) { verdict.className = "verdict no"; verdict.textContent = "» Enter a flag first."; return; }
+            if (!/^FLAG\{.*\}$/.test(value)) {
+                verdict.className = "verdict no";
+                verdict.textContent = "» Wrong format.";
+                return;
+            }
+            const hash = await sha256(value);
+            if (hash === EXPECTED_HASH) {
+                verdict.className = "verdict ok";
+                verdict.textContent = "» ACCESS GRANTED — vault open. ✓";
+            } else {
+                verdict.className = "verdict no";
+                verdict.textContent = "» ACCESS DENIED.";
+            }
+        }
+
+        document.getElementById("check").addEventListener("click", check);
+        input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+        document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+</body>
+
+</html>

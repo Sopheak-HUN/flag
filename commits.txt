@@ -1,0 +1,11 @@
+commit d3f21ab1abbb156f4d5f1e2c3b4a5d6e7f8c9b0a
+Author: Security Team <security@cyberflag.local>
+Date:   Wed Jul 8 10:15:32 2026 +0000
+
+    Update IV initial vectors for cookie encryption (first segment locked in this commit).
+
+commit 3e4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b
+Author: Dev Team <dev@cyberflag.local>
+Date:   Mon Jul 6 09:20:11 2026 +0000
+
+    Initial setup of the challenge landing page and ambient animations.
